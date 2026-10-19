@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="../assets/logo.png">
+    <link rel="stylesheet" href="app.css">
+</head>
+
+<body class="h-screen w-screen flex flex-col bg-zinc-950 font-sans overflow-hidden text-white">
+
+    <div class="h-8 w-full flex items-center justify-end gap-2 px-3 shrink-0 [-webkit-app-region:drag]">
+    
+    
+    <button id="winHide" title="Minimize" class="[-webkit-app-region:no-drag] p-1 rounded text-zinc-400 hover:bg-zinc-800 hover:text-white transition">
+    <svg xmlns="http://w3.org" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  </button>
+
+
+    <button id="winMaximize" title="Maximize" class="[-webkit-app-region:no-drag] p-1 rounded text-zinc-400 hover:bg-zinc-800 hover:text-white transition">
+    <svg xmlns="http://w3.org" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="15" height="15" rx="2" ry="2"></rect>
+    </svg>
+  </button>
+
+    <button id="winClose" title="Close" class="[-webkit-app-region:no-drag] p-1 rounded text-zinc-400 hover:bg-red-600 hover:text-white transition">
+    <svg xmlns="http://w3.org" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+
+    </div>
+
+
+    <nav class="navBar">
+         <div class="flex items-center justify-center gap-4 px-6 py-4 bg-black/60 backdrop-blur-md shadow-sm border-b border-white/10">
+            <a href="index.html" class="group relative pb-1 px-1 text-sm font-medium text-gray-300 transition-colors duration-200 hover:text-blue-500">Home
+            </a>
+
+            <a href="sender.html" class="group relative pb-1 px-1 text-sm font-medium text-gray-300 transition-colors duration-200 hover:text-blue-500">Sender
+            </a>
+        </div>
+    </nav>
+
+
+
+    <div class="flex-1 min-h-0 overflow-y-auto flex flex-col justify-start items-center gap-4 px-4 pt-4 pb-6">
+        <img class="w-36 h-auto" src="../assets/logo.png" alt="SocketCraft">
+
+        <input
+                type="text"
+                id="opcodeInput"
+                placeholder="Opcode"
+                class="w-full max-w-md px-4 py-2 bg-white/5 border border-white/20 text-white placeholder-gray-400 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+
+        <input
+                type="text"
+                id="payloadInput"
+                placeholder="Payload"
+                class="w-full max-w-md px-4 py-2 bg-white/5 border border-white/20 text-white placeholder-gray-400 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+
+        <div class="w-full max-w-md flex items-center gap-6 px-1">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-300">
+                <input type="checkbox" id="finBit" checked class="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-600 focus:ring-blue-500">
+                FIN Bit
+            </label>
+            
+        </div>
+
+            <p id="craftError" class="w-full max-w-md min-h-[1.25rem] text-sm text-red-400"></p>
+
+            <button
+                id="Craft"
+                class="flex items-center justify-center gap-2 cursor-pointer w-full max-w-md bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200"
+            >
+            <img src = "../assets/hammer.png" alt = "Craft" style="width: 20px; height: 20px;">
+                Craft
+            </button>
+
+            <div id = "outputContainer" class="w-full max-w-md">
+                <label class="text-xs font-medium text-gray-400">Output</label>
+                <div class="relative">
+                    <p id="output" class="w-full min-h-8 px-3 py-1 bg-white/5 border border-white/20 rounded-lg text-sm text-gray-300"></p>
+
+                    <div onClick = "copyPacket(); toggleClass();" id = "copyButton" title="Copy" class="absolute left-full top-1/2 -translate-y-1/2 ml-2 cursor-pointer p-1 rounded hover:bg-zinc-800">
+                        <img id="copyIcon" src="../assets/copy.png" alt="Copy" class="w-4 h-4 max-w-none">
+                        <img id="checkIcon" src="../assets/check.png" alt="Copied" class="hidden w-4 h-4 max-w-none">
+                    </div>
+                </div>
+            </div>
+
+     </div>
+
+
+     <div id = "footer" class = "w-full py-4 text-center mt-auto">
+        <p class="text-sm text-gray-400">Made with ❤️ by <a class="font-bold text-blue-500" href="https://github.com/prestge">Prestige</a></p>
+    </div>
+
+    <script type="module">
+        import * as utils from '../src/utils/handlers.js';
+        import { sessionHandler, fieldClear } from '../src/Utils/session.js';
+
+        sessionHandler();
+        
+        window.copyPacket = utils.copyPacket;
+        window.toggleClass = utils.toggleClass;
+
+
+        /**
+         * @description Window management functionality
+        */
+        const win = nw.Window.get();
+        let isMaximized = false;
+
+        win.on('maximize', () => {
+            isMaximized = true;
+        });
+
+        win.on('restore', () => {
+            isMaximized = false;
+        });
+
+
+
+        document.getElementById('winMaximize').addEventListener('click', () => {
+            if (isMaximized) {
+                win.restore();
+            } else {
+                win.maximize();
+            }
+        });
+        document.getElementById('winHide').addEventListener('click', () => win.minimize());
+        document.getElementById('winClose').addEventListener('click', () => win.close());
+
+
+
+
+
+
+
+
+        document.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "r") {
+                event.preventDefault();
+                nw.Window.get().reload();
+            }
+        });
+
+        
+
+       
+        /**
+         * @description packet joining
+         * 
+         **/
+
+        document.getElementById('Craft').addEventListener('click', () => {
+            
+            // crafted string logic here
+
+        });
+
+
+    </script>
+</body>
+</html>

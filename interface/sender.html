@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="../assets/logo.png">
+    <link rel="stylesheet" href="app.css">
+</head>
+
+<body class="h-screen w-screen flex flex-col bg-zinc-950 font-sans overflow-hidden text-white">
+    <div class="h-8 w-full flex items-center justify-end gap-2 px-3 shrink-0 [-webkit-app-region:drag]">
+    
+    
+    <button id="winHide" title="Minimize" class="[-webkit-app-region:no-drag] p-1 rounded text-zinc-400 hover:bg-zinc-800 hover:text-white transition">
+    <svg xmlns="http://w3.org" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  </button>
+
+
+    <button id="winMaximize" title="Maximize" class="[-webkit-app-region:no-drag] p-1 rounded text-zinc-400 hover:bg-zinc-800 hover:text-white transition">
+    <svg xmlns="http://w3.org" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="15" height="15" rx="2" ry="2"></rect>
+    </svg>
+  </button>
+
+    <button id="winClose" title="Close" class="[-webkit-app-region:no-drag] p-1 rounded text-zinc-400 hover:bg-red-600 hover:text-white transition">
+    <svg xmlns="http://w3.org" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+
+
+    </div>
+    <nav class="navBar">
+         <div class="flex items-center justify-center gap-4 px-6 py-4 bg-black/60 backdrop-blur-md shadow-sm border-b border-white/10">
+            <a href="index.html" class="group relative pb-1 px-1 text-sm font-medium text-gray-300 transition-colors duration-200 hover:text-blue-500">Home
+                <span class="absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+
+            <a href="sender.html" class="group relative pb-1 px-1 text-sm font-medium text-gray-300 transition-colors duration-200 hover:text-blue-500">Sender
+                <span class="absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+        </div>
+    </nav>
+
+
+
+    <div class="flex-1 overflow-hidden flex flex-col justify-start items-center gap-4 px-4 pt-4 pb-6">
+        <img class="w-36 h-auto" src="../assets/logo.png" alt="XAgent">
+
+
+
+
+
+        <textarea
+            id="packetInput"
+            placeholder="Enter packet hex sequences, seperated by commas"
+            rows="4"
+            class="w-full max-w-md px-4 py-2 bg-white/5 border border-white/20 text-white placeholder-gray-400 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+        ></textarea>
+
+        <div class="w-full max-w-md flex gap-2">
+            <input
+                type="text"
+                id="hostInput"
+                placeholder="Server Address"
+                class="flex-1 px-4 py-2 bg-white/5 border border-white/20 text-white placeholder-gray-400 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+            <input
+                type="text"
+                id="portInput"
+                placeholder="Port"
+                class="w-24 px-4 py-2 bg-white/5 border border-white/20 text-white placeholder-gray-400 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+        </div>
+        <div class="w-full max-w-md flex items-center gap-6 px-1">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-300">
+                <input type="checkbox" id="wsScheme" class="w-4 h-4 border-white/20 bg-white/5 text-blue-600 focus:ring-blue-500">
+                ws
+            </label>
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-300">
+                <input type="checkbox"  id="wssScheme" class="w-4 h-4 border-white/20 bg-white/5 text-blue-600 focus:ring-blue-500">
+                wss
+            </label>
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-300">
+                <input type="checkbox" id="loopToggle" class="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-600 focus:ring-blue-500">
+                Loop
+            </label>
+        </div>
+
+        <p id="senderError" class="w-full max-w-md min-h-[1.25rem] text-sm text-red-400"></p>
+
+        <button
+            id="sendBtn"
+            class="flex items-center justify-center gap-2 cursor-pointer w-full max-w-md bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200"
+        >
+        <img src = '../assets/send.png' alt = Send style="width: 20px; height: 20px;">
+            Send
+        </button>
+    </div>
+
+    <script type="module">
+        import * as utils from '../src/utils/handlers.js';
+
+
+        const win = nw.Window.get();
+        let isMaximized = false;
+
+         win.on('maximize', () => {
+            isMaximized = true;
+        });
+
+        win.on('restore', () => {
+            isMaximized = false;
+        });
+
+        document.getElementById('winMaximize').addEventListener('click', () => {
+            if (isMaximized) {
+                win.restore();
+            } else {
+                win.maximize();
+            }
+        });
+        document.getElementById('winHide').addEventListener('click', () => win.minimize());
+        document.getElementById('winClose').addEventListener('click', () => win.close());
+
+        document.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "r") {
+                event.preventDefault();
+                nw.Window.get().reload();
+            }
+        });
+
+
+        /*
+         * @description checkbox validation to ensure both protocols dont check at once
+         * 
+        **/
+        const ws = document.getElementById('wsScheme');
+        const wss = document.getElementById('wssScheme');
+
+        ws.addEventListener('change', () => utils.checkValidate(ws, wss));
+        wss.addEventListener('change', () => utils.checkValidate(wss, ws));
+
+
+    </script>
+</body>
+</html>
